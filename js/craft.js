@@ -139,7 +139,7 @@ function wires(){
 // The portraits are black and white. Hover washes the original colour in from the edge the pointer entered, and
 // it retreats toward the edge it leaves by. A small Signal tick draws before each title.
 function portraits(){
-  qsa('.person .zA .grey').forEach(t=>t.classList.add('tick'));
+  qsa('.person .zA .grey, .person .b1').forEach(t=>t.classList.add('tick'));
   if(!HOVER||RM) return;
   const ins={top:'inset(0 0 100% 0)',bottom:'inset(100% 0 0 0)',left:'inset(0 100% 0 0)',right:'inset(0 0 0 100%)'};
   const edge=(e,r)=>{ const d={top:e.clientY-r.top,bottom:r.bottom-e.clientY,left:e.clientX-r.left,right:r.right-e.clientX}; return Object.keys(d).sort((a,b)=>d[a]-d[b])[0]; };
