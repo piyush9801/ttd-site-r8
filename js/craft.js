@@ -93,7 +93,7 @@ function arrivals(){
 function indexMarker(parts){
   const idx=qs('.idx'); if(!idx||!HOVER||RM) return;
   const rows=qsa('li',idx).map(li=>({li,n:qs('.mid',li)}));
-  const m=document.createElement('i'); m.className='im'; m.setAttribute('aria-hidden','true'); idx.appendChild(m);
+  const m=document.createElement('i'); m.className='idx-dot'; m.setAttribute('aria-hidden','true'); idx.appendChild(m);
   let tgt=null, cx=0, cy=0, vy=0, op=0, first=true;
   const last=el=>{ const tn=[...el.childNodes].find(n=>n.nodeType===3), rg=document.createRange(), L=tn.textContent.length; rg.setStart(tn,L-1); rg.setEnd(tn,L); return rg.getBoundingClientRect(); };
   rows.forEach(o=>o.li.addEventListener('mouseenter',()=>{ tgt=o; }));
@@ -170,8 +170,38 @@ function elastic(parts){
   }});
 }
 
+
+// ------------------------------------------------------------------ The Work: the redacted brief
+// After the "official report" poster: every word is under an Ink bar except the phrases in data-keep, which
+// read as a sentence of their own. As the document passes up the screen the bars lift, line by line, in reading
+// order, until the whole brief is open. Scrubbed and reversible; bars are opaque, never blurred.
+function redact(parts){
+  const doc=qs('.doc'); if(!doc) return;
+  const keep=(doc.dataset.keep||'').split('|').filter(Boolean);
+  const P=qsa('p:not(.sign)',doc);
+  P.forEach(p=>{ let html=p.textContent;
+    keep.forEach(k=>{ html=html.replace(new RegExp('\\b'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i'),m=>`\u0000${m}\u0001`); });
+    p.innerHTML=html.split(/(\u0000[^\u0001]*\u0001)/).map(seg=>seg.startsWith('\u0000')?`<span class="keep">${seg.slice(1,-1)}</span>`
+      :seg.split(/(\s+)/).map(w=>w.trim()?`<span class="wd">${w}</span>`:w).join('')).join(''); });
+  const layer=document.createElement('span'); layer.className='redact'; layer.setAttribute('aria-hidden','true'); doc.appendChild(layer);
+  let B=[];
+  const build=()=>{ layer.innerHTML=''; const d=doc.getBoundingClientRect(), fs=parseFloat(getComputedStyle(P[0]).fontSize);
+    const runs=[]; P.forEach(p=>{ let cur=null;
+      [...p.querySelectorAll('.wd,.keep')].forEach(el=>{ const rs=[...el.getClientRects()];
+        rs.forEach(r=>{ if(el.classList.contains('keep')){ cur=null; return; }
+          if(cur&&Math.abs(cur.t-r.top)<fs*.3&&r.left-cur.r<fs*.6){ cur.r=r.right; } else { cur={t:r.top,b:r.bottom,l:r.left,r:r.right}; runs.push(cur); } }); }); });
+    runs.sort((a,b)=>Math.abs(a.t-b.t)<fs*.3?a.l-b.l:a.t-b.t);
+    B=runs.map(o=>{ const i=document.createElement('i'), pad=fs*.12; i.style.cssText=`left:${o.l-d.left-pad*.5}px;top:${o.t-d.top-fs*.01}px;width:${o.r-o.l+pad}px;height:${(o.b-o.t)+fs*.1}px`; layer.appendChild(i); return {i,s:0}; }); };
+  build(); addEventListener('resize',()=>setTimeout(build,120));
+  let q=0;
+  parts.push({update(){ const r=doc.getBoundingClientRect(), vh=innerHeight; if(r.bottom<-vh||r.top>vh*1.5) return;
+    // measured in scroll travelled, so a brief already on screen at load starts fully redacted
+    const top=r.top+scrollY, start=Math.max(0,top-vh*.72), t=clamp((scrollY-start)/(r.height*.9+vh*.2)); q+=(t-q)*.12; if(Math.abs(t-q)<1e-4) q=t;
+    const N=B.length; B.forEach((b,j)=>{ const a=j/N*.78, k=RM?(q>.05?1:0):E.inOut(clamp((q-a)/.22)); b.i.style.transform=`scaleX(${(1-k).toFixed(4)})`; }); }});
+}
+
 // ------------------------------------------------------------------ run, once the page system is ready
 function start(){ const parts=window.TTDParts; if(!parts) return;
-  depart(); navStop(parts); arrivals(); indexMarker(parts); prompter(parts); wires(); portraits(); elastic(parts); }
+  depart(); navStop(parts); arrivals(); indexMarker(parts); prompter(parts); wires(); portraits(); elastic(parts); redact(parts); }
 if(window.TTDParts&&document.documentElement.dataset.ready==='1') start(); else document.addEventListener('ttd:ready',start,{once:true});
 })();

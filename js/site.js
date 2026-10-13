@@ -301,7 +301,10 @@ function split(){
     const {p,vis}=pinProgress(sec); s+=(p-s)*.14; if(Math.abs(p-s)<1e-4) s=p; if(!vis) return;
     const vw=pin.clientWidth, vh=pin.clientHeight, m=Math.max(16,vw*.0111), small=vw<760;
     const a=E.house(seg(s,.02,.36)), o=E.inOut(seg(s,.5,.88));
-    const lw=small?vw*.62:vw*.26, lh=small?vh*.22:vh*.5, rw=small?vw*.4:vw*.17, rh=rw*1.25;
+    // the photographs take only the room left beside the words, so they never touch them
+    const ws=qsa('.w',sec).map(w=>w.getBoundingClientRect()), pr=pin.getBoundingClientRect(), gapX=Math.max(24,vw*.03);
+    const wl=Math.min(...ws.map(r=>r.left))-pr.left, wr=Math.max(...ws.map(r=>r.right))-pr.left;
+    const lw=small?vw*.62:Math.min(vw*.26,wl-m-gapX), lh=small?vh*.22:Math.min(vh*.5,lw*1.2), rw=small?vw*.4:Math.min(vw*.17,vw-wr-m-gapX), rh=rw*1.25;
     const lx0=small?m:m, ly0=small?vh*.06:(vh-lh)/2, rx=small?vw-m-rw:vw-m-rw, ry=small?vh-rh-vh*.06:(vh-rh)/2;
     // in: each slides from beyond its edge
     const lx=lerp(-lw-40,lx0,a), rxx=lerp(vw+40,rx,a);

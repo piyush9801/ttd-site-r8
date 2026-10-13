@@ -227,7 +227,7 @@ i{font-style:normal}
 
 /* The Work / The Dept.: two words, two photographs slide in from the edges, then one opens to the full screen */
 .split .pin-in{background:var(--cream)}
-.split .words{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:5vw;z-index:3}
+.split .words{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;gap:5vw;z-index:3;padding-top:calc(50vh - .62*clamp(40px,5vw,96px))}
 .split .w{display:grid;row-gap:.9em;text-align:center;justify-items:center}
 .split .w .disp{color:var(--ink);font-size:clamp(40px,5vw,96px)}
 .split .w .grey{max-width:16em}
@@ -236,7 +236,7 @@ i{font-style:normal}
 .split .im img{width:100%;height:100%;object-fit:cover;filter:grayscale(1);transition:transform 1s var(--ease)}
 .split .im.ir img{object-position:50% 14%}
 .split .im.hov img{transform:scale(1.04)}
-@media (max-width:760px){ .split .words{flex-direction:column;gap:12vh} }
+@media (max-width:760px){ .split .words{flex-direction:column;align-items:center;justify-content:center;gap:12vh;padding-top:0} }
 
 /* the people, as a deck of cards that fans open */
 .fan .deck{position:relative;height:min(78vh,56vw);margin-top:6vh}
@@ -298,7 +298,7 @@ html.veiled::after{content:"";position:fixed;inset:0;background:#D65A4A;z-index:
 
 /* services index: the full stop that follows the pointer */
 .idx{position:relative}
-.im{position:absolute;left:0;top:0;width:6px;height:6px;background:var(--red);border-radius:1.2px;pointer-events:none;opacity:0;z-index:4}
+.idx-dot{position:absolute;left:0;top:0;width:6px;height:6px;background:var(--red);border-radius:1.2px;pointer-events:none;opacity:0;z-index:4}
 
 /* The Work: the prompter's full stop, in a zero-width slot */
 .pd{position:relative;display:inline-block;width:0;height:0}
@@ -334,3 +334,18 @@ html.veiled::after{content:"";position:fixed;inset:0;background:#D65A4A;z-index:
   .rise,.rule.draw,.ph-rv,.ph-rv img{opacity:1!important;transform:none!important;clip-path:none!important}
   .np{animation:none}
 }
+
+/* The Work: the redacted brief (after the "official report" poster). Ink bars cover every word but the ones that
+   matter; scroll lifts them in reading order. */
+.doc-row{padding-top:5vw}
+.doc{position:relative;font-size:clamp(22px,2.35vw,44px);line-height:1.5;letter-spacing:-.018em;font-weight:300}
+.doc p+p{margin-top:.8em}
+.doc .keep{font-weight:500}
+.doc .sign{font-size:var(--sm);letter-spacing:.004em;margin-top:3.2em!important;padding-top:1em;border-top:1px solid var(--hair);display:inline-block}
+.doc-mark{display:grid;row-gap:5px;width:34px;margin-bottom:2.2em}
+.doc-mark i{display:block;height:5px;background:var(--ink)}
+.doc-mark i:nth-child(2){width:80%}
+.doc-mark i:nth-child(3){width:56%}
+.doc .redact{position:absolute;inset:0;pointer-events:none}
+.doc .redact i{position:absolute;background:var(--ink);transform-origin:100% 50%;will-change:transform}
+@media (max-width:760px){ .doc-row{padding-top:40px} .doc{font-size:22px} }
