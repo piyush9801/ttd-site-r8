@@ -104,8 +104,6 @@ i{font-style:normal}
 .idx li:last-child{border-bottom:1px solid var(--hair2)}
 .idx li .row{padding:1.05vw 0 1.15vw}
 .idx li .mid{transition:color .5s var(--ease)}
-.idx:hover li .mid{color:var(--quiet)}
-.idx li:hover .mid{color:var(--ink)}
 @media (max-width:760px){ .idx{margin-top:36px} .idx li .row{padding:14px 0} .idx li .row>*+*{margin-top:6px} }
 
 /* ---- Possibility: icons into buildings */
@@ -262,9 +260,77 @@ i{font-style:normal}
 @media (prefers-reduced-motion:reduce){ .veil{display:none} .rv.hid>.rvin{opacity:1} .rv>.bars{display:none} }
 
 /* arriving from another page: cover at once, before the first paint */
-html.veiled::after{content:"";position:fixed;inset:0;background:#171614;z-index:299}
+html.veiled::after{content:"";position:fixed;inset:0;background:#D65A4A;z-index:299}
 @media (max-width:760px){
   .fan .card{width:28vw;margin-left:-14vw}
   .fan .card span.n{display:none}
   .fan .deck{height:58vh}
+}
+
+/* =====================================================================================
+   The craft layer (piyush-motion-kit, as approved on the TTD site-dot build)
+   ===================================================================================== */
+/* page transitions: the full stop swells from where you clicked; the next page opens out of the logo's full stop */
+.ptd{position:fixed;background:var(--red);z-index:400;pointer-events:none;transform:scale(0)}
+.pt{position:fixed;inset:0;background:var(--red);z-index:399;pointer-events:none}
+
+/* nav: one sentence, one full stop */
+.nav a.ul,.nav a.ul:hover,.nav a.ul.on{background:none}
+.nav{--np:1}
+.np{position:absolute;left:0;top:0;width:5px;height:5px;pointer-events:none;animation:breath 4.2s ease-in-out infinite}
+.np b{position:absolute;inset:0;background:var(--red);border-radius:1.2px;transform-origin:50% 50%}
+.np.land b{animation:land .42s cubic-bezier(.34,1.56,.64,1)}
+@keyframes land{0%{transform:scaleX(1.7) scaleY(.6)}100%{transform:none}}
+@keyframes breath{0%,100%{filter:none}50%{filter:opacity(.55)}}
+
+/* arrivals */
+.rule.draw{transform:scaleX(0);transform-origin:0 50%;transition:transform 1.6s var(--ease)}
+.rule.draw.in{transform:none}
+.rise{opacity:0;transform:translateY(1.2em);transition:opacity 1s var(--ease) var(--d,0s),transform 1.25s var(--ease) var(--d,0s)}
+.rise.in{opacity:1;transform:none}
+.ph-rv{clip-path:inset(100% 0 0 0);transition:clip-path 1.5s cubic-bezier(.65,0,.35,1)}
+.ph-rv img{transform:scale(1.14);transition:transform 2.6s var(--ease)}
+.ph-rv.in{clip-path:inset(0 0 0 0)}
+.ph-rv.in img{transform:none}
+.rv .rvin{position:relative}
+.rv .rvin.settle{animation:brvsettle .7s var(--ease)}
+@keyframes brvsettle{from{top:.07em}to{top:0}}
+
+/* services index: the full stop that follows the pointer */
+.idx{position:relative}
+.im{position:absolute;left:0;top:0;width:6px;height:6px;background:var(--red);border-radius:1.2px;pointer-events:none;opacity:0;z-index:4}
+
+/* The Work: the prompter's full stop, in a zero-width slot */
+.pd{position:relative;display:inline-block;width:0;height:0}
+.pd i{position:absolute;left:.05em;bottom:0;width:.21em;height:.21em;background:var(--red);border-radius:1px;transform:scale(0);transform-origin:50% 100%;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.lit .pd i{transform:none}
+.svcs h3{transition:color .6s var(--ease)}
+.svcs li:not(.lit) h3{color:var(--quiet)}
+.svcs li.lit h3{color:var(--ink)}
+
+/* The Work: the connection from guest to show */
+.roster li{position:relative}
+.wire{position:absolute;height:1px;width:0;background:var(--red);pointer-events:none;transition:width .9s cubic-bezier(.3,1.16,.4,1)}
+.wire::after{content:"";position:absolute;right:-3px;top:-2.5px;width:6px;height:6px;background:var(--red);border-radius:1px;transform:scale(0)}
+.roster li.on .wire{width:var(--w)}
+.roster li.on .wire::after{animation:tip .5s cubic-bezier(.34,1.56,.64,1) .72s forwards}
+@keyframes tip{to{transform:scale(1)}}
+.roster li .show{transition:color .5s var(--ease)}
+.roster li.on .show{transition-delay:.55s}
+
+/* The Dept.: colour from the edge you came in, and the pen-stroke tick before each title */
+.shot{position:relative;display:block;overflow:hidden}
+.shot .col{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 12%;filter:none!important;clip-path:inset(100% 0 0 0);transition:clip-path .9s var(--ease)}
+.tick::before{content:"";display:inline-block;width:1.1em;height:1px;background:var(--red);vertical-align:.32em;margin-right:.55em;transform:scaleX(0);transform-origin:100% 50%;transition:transform .9s var(--ease) .35s}
+.rise.in .tick::before,.tick.in::before{transform:scaleX(1)}
+.person:hover .tick::before{transform:scaleX(1.5);transition:transform .7s cubic-bezier(.3,1.3,.4,1)}
+
+/* contact: the elastic line under the email */
+.foot .mail{position:relative;display:inline-block;padding-bottom:.15em}
+.foot .mail .band{position:absolute;left:0;top:100%;width:100%;height:40px;overflow:visible;pointer-events:none;margin-top:-6px}
+.foot .mail .band path{stroke:var(--cream);stroke-width:1.1;vector-effect:non-scaling-stroke}
+
+@media (prefers-reduced-motion:reduce){
+  .rise,.rule.draw,.ph-rv,.ph-rv img{opacity:1!important;transform:none!important;clip-path:none!important}
+  .np{animation:none}
 }

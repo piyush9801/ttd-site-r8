@@ -112,9 +112,16 @@ function sight(){
   // the camera starts inside the field, so the pieces are large and everywhere; it pulls back until they align
   const cam=p=>.95*(1-E.inOut(seg(p,.03,.66)));
   const lab=qs('.lab-s',sec);
-  api.run(p=>{ const c=cam(p);
+  // the ripple, kept in pacing (never height): near the pointer each dash slides toward it along its own row
+  let px=null, py=null, aligned=false; P.forEach(q=>q.o=0);
+  const host=qs('.pin-in',sec), fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  if(fine){ host.addEventListener('mousemove',e=>{ const st=api.stage.getBoundingClientRect(), k=st.width/1920; px=(e.clientX-st.left)/k; py=(e.clientY-st.top)/k; });
+    host.addEventListener('mouseleave',()=>{ px=py=null; }); }
+  api.run(p=>{ const c=cam(p); aligned=c<.004;
     P.forEach(q=>{ if(q.z<=c+.002){ put(q.el,0,0,0,0); return; }
-      const r=q.z/(q.z-c), x=VX+(q.x-VX)*r, y=VY+(q.y-VY)*r, w=q.w*r, h=q.h*r;
+      let to=0; if(aligned&&px!==null){ const qc=q.x+q.w/2, g=Math.exp(-Math.pow((qc-px)/250,2)-Math.pow((q.y-py)/80,2)); to=(px-qc)*.46*g; }
+      q.o+=(to-q.o)*.12; if(Math.abs(q.o)<.01) q.o=0;
+      const r=q.z/(q.z-c), x=VX+(q.x+q.o-VX)*r, y=VY+(q.y-VY)*r, w=q.w*r, h=q.h*r;
       if(x>2400||x+w<-480||y>1500||y+h<-420){ put(q.el,0,0,0,0); return; }
       put(q.el,x,y-h/2,w,h); });
     if(lab) lab.classList.toggle('in',p>.68);
@@ -191,7 +198,8 @@ function waveNames(){
     const {p,vis}=pinProgress(sec); if(!vis) return;
     const tf=lerp(-1.2,N+.2,seg(p,.12,.94)); f+=(tf-f)*.1;
     const a=Math.round(f), act=a>=0&&a<N?a:-1;
-    B.forEach((b,i)=>{ const lean=Math.exp(-Math.pow((i-f)/1.4,2)); b.el.style.height=(b.h*(1+.16*lean)*100).toFixed(2)+'%';
+    const pitch=wv.clientWidth/N;
+    B.forEach((b,i)=>{ const g=Math.exp(-Math.pow((i-f)/1.7,2)); b.el.style.height=(b.h*100).toFixed(2)+'%'; b.el.style.transform=`translateX(${((f-i)*pitch*.2*g).toFixed(2)}px)`;
       b.el.classList.toggle('on',i===act); b.el.classList.toggle('red',i===act); });
     if(act!==cur){ cur=act; show(act); }
   }});
@@ -242,7 +250,7 @@ function reveals(){
     measure();
     const play=()=>{ done=true; const n=B.length, st=.085;
       B.forEach((b,i)=>{ b.style.transition=`transform .5s cubic-bezier(.65,0,.35,1) ${i*st}s`; b.style.transformOrigin='0 50%'; b.style.transform='scaleX(1)'; });
-      setTimeout(()=>{ h.classList.remove('hid');
+      setTimeout(()=>{ h.classList.remove('hid'); inn.classList.add('settle');
         B.forEach((b,i)=>{ b.style.transition=`transform .62s cubic-bezier(.22,1,.36,1) ${i*st}s`; b.style.transformOrigin='100% 50%'; b.style.transform='scaleX(0)'; }); },500+(n-1)*st*1000+60); };
     parts.push({resize:measure, update(){ if(done) return; const r=h.getBoundingClientRect(), vh=VH();
       if(r.bottom<0){ done=true; h.classList.remove('hid'); return; }      // already passed (a jump link): just show it
@@ -254,7 +262,7 @@ function reveals(){
 // turns Ink, and two lines run past behind it in opposite directions.
 function recede(){
   const sec=qs('[data-pin="recede"]'); if(!sec) return;
-  const pin=qs('.pin-in',sec), card=qs('.card',sec), img=qs('.card img',sec), rows=qsa('.mq p',sec); let s=0;
+  const pin=qs('.pin-in',sec), card=qs('.card',sec), img=qs('.card img',sec), rows=qsa('.mq p',sec); let s=0, lp=0, lean=0;
   parts.push({update(){
     const {p,vis}=pinProgress(sec); s+=(p-s)*.14; if(Math.abs(p-s)<1e-4) s=p; if(!vis) return;
     const vw=pin.clientWidth, vh=pin.clientHeight, k=E.inOut(seg(s,.04,.6));
@@ -262,7 +270,8 @@ function recede(){
     card.style.width=w+'px'; card.style.height=h+'px'; card.style.transform=`translate(${(vw-w)/2}px,${(vh-h)/2}px)`;
     img.style.transform=`scale(${lerp(1.1,1,E.house(seg(s,0,.6))).toFixed(4)})`;
     const d=E.inOut(seg(s,.1,.42)); pin.style.backgroundColor=mix(C.cream,C.ink,d);
-    rows.forEach((r,i)=>{ const dir=i%2?1:-1; r.style.opacity=d; r.style.transform=`translateX(${(i%2?-60:-8)+dir*s*42}vw)`; });
+    const ds=s-lp; lp=s; lean+=(clamp(-ds*2600,-7,7)-lean)*.12;          // velocity lean, back to upright at rest
+    rows.forEach((r,i)=>{ const dir=i%2?1:-1; r.style.opacity=d; r.style.transform=`translateX(${(i%2?-60:-8)+dir*s*42}vw) skewX(${(dir*lean).toFixed(2)}deg)`; });
   }});
 }
 
@@ -357,7 +366,6 @@ function nav(){
 }
 
 // ---------------------------------------------------------------- run
-veil(); document.documentElement.classList.remove('veiled');
 const ready=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();
 ready.then(()=>hero()).then(()=>{
   headlines(); roster(); reveals(); sight(); icons(); waveNames(); footField(); nav();
@@ -365,5 +373,6 @@ ready.then(()=>hero()).then(()=>{
   const loop=()=>{ parts.forEach(x=>x.update&&x.update()); requestAnimationFrame(loop); }; loop();
   let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>parts.forEach(x=>x.resize&&x.resize()),80); });
   document.documentElement.dataset.ready='1';
+  window.TTDParts=parts; document.dispatchEvent(new Event('ttd:ready'));
 });
 })();
